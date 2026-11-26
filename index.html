@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wall Street en 15 días</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script src="https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prop-types@15.8.1/prop-types.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/react-is@18.3.1/umd/react-is.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/recharts@2.12.7/umd/Recharts.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+<style>
+:root{--bg:#f6f4ef;--tx:#15140f;--mut:#6b685f;--bd:#dcd8cd;--acc:#9a6a12;--up:#4e8a62;--dn:#b8564f;--sf:rgba(0,0,0,.03);--sfb:rgba(0,0,0,.10);--c-sp:#2f6fb5;--c-nq:#9a6a12;--c-dj:#6b7a90;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0b0c0f;--tx:#ece9e2;--mut:#8c8a85;--bd:#24252a;--acc:#e0b872;--up:#8fb89a;--dn:#d98080;--sf:rgba(255,255,255,.03);--sfb:rgba(255,255,255,.10);--c-sp:#cfe6ff;--c-nq:#e0b872;--c-dj:#7f93b5;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0b0c0f;--tx:#ece9e2;--mut:#8c8a85;--bd:#24252a;--acc:#e0b872;--up:#8fb89a;--dn:#d98080;--sf:rgba(255,255,255,.03);--sfb:rgba(255,255,255,.10);--c-sp:#cfe6ff;--c-nq:#e0b872;--c-dj:#7f93b5;color-scheme:dark}
+html,body,#root{height:100%}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{background:var(--bg);color:var(--tx);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;margin:0;font-variant-numeric:tabular-nums}
+.serif{font-family:Fraunces,Georgia,"Times New Roman",serif;font-weight:400;letter-spacing:-.02em}
+.mut{color:var(--mut)}.up{color:var(--up)}.dn{color:var(--dn)}.acc{color:var(--acc)}
+.rule{border-top:1px solid var(--bd)}
+.kick{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut)}
+.recharts-text{fill:var(--mut)!important;font-size:11px}
+.recharts-cartesian-grid line{stroke:var(--bd)}
+.recharts-line text{stroke:none}.b-dn .recharts-rectangle{fill:var(--dn)}.b-up .recharts-rectangle{fill:var(--up)}.sf{background:var(--sf);border:1px solid var(--sfb);border-radius:10px}.pill{padding:4px 11px;border-radius:999px;font-size:12px;border:1px solid var(--bd);color:var(--mut);background:none;cursor:pointer}.pill.on{color:var(--tx);border-color:var(--tx)}
+.tab{padding:10px 0;margin-right:26px;font-size:14px;color:var(--mut);border:0;border-bottom:2px solid transparent;background:none;cursor:pointer}
+.tab.on{color:var(--tx);border-bottom-color:var(--acc)}
+.seg{display:inline-flex;border:1px solid var(--bd);border-radius:7px;padding:2px}
+.seg button{border:0;background:none;color:var(--mut);font-size:12px;padding:5px 11px;border-radius:5px;cursor:pointer}
+.seg button.on{background:var(--tx);color:var(--bg);font-weight:600}
+.fade{animation:f .25s ease}@keyframes f{from{opacity:0}to{opacity:1}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState}=React;
+const {LineChart,Line,XAxis,YAxis,Tooltip,ResponsiveContainer,CartesianGrid,ReferenceLine,ReferenceArea,BarChart,Bar}=Recharts;
+const M="\u2212";
+const fmt=v=>(v>0?"+":v<0?M:"")+String(Math.abs(v)).replace(".",",")+"%";
+const DATA=[
+{d:"10/11",sp:0,nq:0,dj:0,spL:"7.520,93",nqL:"25.065,87",djL:"52.231,89"},
+{d:"13/11",sp:0.5,nq:0.3,dj:0.2,spL:"7.561,67",nqL:"25.136,27",djL:"52.347,55"},
+{d:"17/11",sp:-2.4,nq:-2.9,dj:-2.8,spL:"7.340,53",nqL:"24.328,38",djL:"50.759,42"},
+{d:"20/11",sp:-8.1,nq:-9.8,dj:-7.8,spL:"6.910,39",nqL:"22.617,73",djL:"48.147,33"},
+{d:"24/11",sp:-4.3,nq:-5.3,dj:-4.2,spL:"7.201,09",nqL:"23.733,54",djL:"50.018,70"},
+{d:"25/11",sp:-4.5,nq:-5.9,dj:-3.9,spL:"7.182,78",nqL:"23.585,80",djL:"50.182,95"}];
+const SER={sp:"S&P 500",nq:"Nasdaq",dj:"Dow Jones"};
+const LC={sp:"#F5F5F4",nq:"#F59E0B",dj:"#A78BFA"};
+const SUM=[{k:"sp",l:"7.182,78",p:-4.5,w:-8.6,r:3.9},{k:"nq",l:"23.585,80",p:-5.9,w:-10.0,r:4.3},{k:"dj",l:"50.182,95",p:-3.9,w:-8.0,r:4.2}];
+
+const BARS=[{n:"S&P 500",c:-8.6,r:3.9},{n:"Nasdaq",c:-10.0,r:4.3},{n:"Dow Jones",c:-8.0,r:4.2}];
+const Mode=React.createContext(false);
+const T=({a,s})=>{const m=React.useContext(Mode);return <>{m?s:a}</>};
+const Src=({children})=><div className="mut text-[11px] pt-3 rule mt-auto">{children}</div>;
+
+function Tip({active,payload,label}){
+  if(!active||!payload)return null;
+  const r=DATA.find(x=>x.d===label);
+  return <div style={{background:"var(--bg)",border:"1px solid var(--bd)",padding:"10px 12px",fontSize:12,minWidth:200}}>
+    <div className="kick mb-1">{label}</div>
+    {payload.map(p=><div key={p.dataKey} className="flex justify-between gap-4 py-0.5">
+      <span>{SER[p.dataKey]}</span><span>{r[p.dataKey+"L"]} <b className={p.value<0?"dn":"up"}>{fmt(p.value)}</b></span></div>)}
+  </div>;
+}
+const endLabel=k=>({x,y,index})=>index===5?<text x={x+10} y={y+4} stroke="none" style={{fill:LC[k],fontSize:12,fontWeight:600}}>{SER[k]} {fmt(DATA[5][k])}</text>:null;
+const evLabel=(t,m)=>({viewBox:v})=><text stroke="none" textAnchor={m==="l"?"end":"start"} x={m==="l"?v.x-6:v.x+6} y={m==="b"?v.y+v.height-26:v.y+14} style={{fill:"var(--mut)",fontSize:11}}>{t}</text>;
+const barLbl=({x,y,width,height,value})=><text stroke="none" textAnchor="middle" x={x+width/2} y={value<0?y+height+13:y-5} style={{fill:"var(--tx)",fontSize:11}}>{fmt(value)}</text>;
+
+function Pulse(){
+  const [sel,setSel]=useState("all");
+  const keys=sel==="all"?["dj","sp","nq"]:[sel];
+  return <div className="h-full flex flex-col gap-4 fade">
+    <div className="grid lg:grid-cols-[minmax(320px,2fr)_3fr] gap-x-12 gap-y-6">
+      <div className="flex flex-col">
+        <div className="kick mb-3">El pulso en 30 segundos</div>
+        <h1 className="serif text-3xl xl:text-[34px] leading-tight"><T a="Corrección de 8% y rebote parcial: el S&P 500 cierra 4,5% bajo su nivel del 10/11." s="Una montaña rusa: la bolsa cayó fuerte, subió un poco y sigue más abajo que hace 15 días."/></h1>
+        <p className="mut mt-4 text-[15px] max-w-md"><T a="Caída hasta el 20/11, la peor semana en más de 18 meses, y recuperación de cerca de 4% en tres ruedas." s="Hasta el 20/11 las empresas más grandes del país perdieron valor sin parar. Desde ahí recuperaron solo una parte."/></p>
+        <div className="mt-4">
+          <div className="grid grid-cols-[1fr_auto_auto] gap-x-6 kick pb-2"><span>Índice, desde el 10/11</span><span className="text-right">Variación</span><span className="text-right w-[104px]">Caída / rebote</span></div>
+          {SUM.map(s=><div key={s.k} className="rule grid grid-cols-[1fr_auto_auto] gap-x-6 items-baseline py-2">
+            <div><div className="text-sm" style={{color:LC[s.k]}}>{SER[s.k]}</div><div className="mut text-xs">{s.l}</div></div>
+            <div className="text-right"><span className="serif text-3xl dn">{fmt(s.p)}</span></div>
+            <div className="text-right text-xs leading-5 w-[104px]"><span className="dn">{fmt(s.w)}</span> <span className="mut">/</span> <span className="up">{fmt(s.r)}</span></div>
+          </div>)}
+        </div>
+      </div>
+      <div className="flex flex-col min-h-[260px]">
+        <div className="flex flex-wrap justify-between items-center gap-2 mb-2">
+          <span className="text-sm"><T a="Variación acumulada vs. cierre del 10/11" s="¿Cuánto subió o bajó cada índice desde el 10/11?"/></span>
+          <div className="flex gap-2">{[["all","Todos"],["sp","S&P"],["nq","Nasdaq"],["dj","Dow"]].map(([k,n])=><button key={k} className={"pill "+(sel===k?"on":"")} onClick={()=>setSel(k)}>{n}</button>)}</div>
+        </div>
+        <div className="flex-1 min-h-[235px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={DATA} margin={{top:8,right:130,left:-14,bottom:0}}>
+              <CartesianGrid vertical={false}/>
+              <ReferenceArea x1="17/11" x2="20/11" style={{fill:"var(--dn)",fillOpacity:.07}}/>
+              <XAxis dataKey="d" tickLine={false} axisLine={false}/>
+              <YAxis tickFormatter={v=>v+"%"} tickLine={false} axisLine={false} domain={[-10.5,1.5]} ticks={[-10,-8,-6,-4,-2,0]}/>
+              <ReferenceLine y={0} stroke="var(--mut)" strokeDasharray="3 4"/>
+              <ReferenceLine x="10/11" stroke="var(--bd)" label={evLabel("IPC peor de lo esperado")}/>
+              <ReferenceLine x="20/11" stroke="var(--bd)" label={evLabel("Peor semana en 18 meses","b")}/>
+              <ReferenceLine x="24/11" stroke="var(--bd)" label={evLabel("23/11: Nvidia +31,5%","l")}/>
+              <Tooltip content={<Tip/>}/>
+              {keys.map(k=><Line key={k} stroke={LC[k]} type="monotone" dataKey={k} strokeWidth={2.5} dot={false} activeDot={{r:5}} label={endLabel(k)} isAnimationActive={false}/>)}
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+    </div>
+    <div className="sf px-4 pt-3 pb-1 mt-4">
+      <div className="flex flex-wrap justify-between items-baseline gap-2 text-sm"><span><T a="Caída semanal (13→20/11) vs. rebote (20→25/11)" s="Lo que se perdió en una semana y lo que se recuperó después"/></span><span className="text-xs mut"><span className="dn">■</span> Caída &nbsp;<span className="up">■</span> Rebote</span></div>
+      <div style={{height:128}}>
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={BARS} margin={{top:18,right:8,left:-14,bottom:16}} barCategoryGap="30%">
+            <XAxis dataKey="n" tickLine={false} axisLine={false} height={18}/>
+            <YAxis hide domain={[-13,8]}/>
+            <ReferenceLine y={0} stroke="var(--bd)"/>
+            <Tooltip cursor={{fill:"var(--sf)"}} formatter={v=>fmt(v)} contentStyle={{background:"var(--bg)",border:"1px solid var(--bd)",fontSize:12}}/>
+            <Bar dataKey="c" name="Caída" className="b-dn" fill="var(--dn)" label={barLbl} isAnimationActive={false}/>
+            <Bar dataKey="r" name="Rebote" className="b-up" fill="var(--up)" label={barLbl} isAnimationActive={false}/>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+    <Src>Fuente: cierres AP del 10, 17, 20 y 25/11. Los puntos del 13/11 y 24/11 se derivan de los cambios semanales y diarios reportados por AP.</Src>
+  </div>;
+}
+
+const CATS=[
+{t:"Inflación y Fed",big:"100%",cap:"probabilidad de suba de tasas en diciembre",
+ a:"El IPC de octubre salió peor que lo esperado (10/11). Los futuros descuentan suba en la reunión del 8-9/12 y el PCE del 25/11 siguió alto.",
+ s:"Los precios suben más de lo previsto, así que el banco central encarecería el crédito. Es como que te suban la cuota del préstamo: todos se vuelven más cautelosos."},
+{t:"El escándalo de Nvidia",big:"\u221228% / +31,5%",cap:"tras la renuncia de Huang / el 23/11",
+ a:"La renuncia de Huang hundió a NVDA y arrastró al sector. Tras la intervención de Trump volvió y la acción saltó 31,5%, pero el 25/11 cayó otro 3,9%.",
+ s:"La empresa estrella de la IA perdió a su líder y se desplomó. Al volver rebotó de golpe, pero la calma duró poco: si la figura clave del equipo duda, tiembla todo el equipo."},
+{t:"Ventas masivas de IA",big:"\u22125,3%",cap:"cayó el Nasdaq el 20/11",
+ a:"Temor a más regulación de IA tras el triunfo demócrata en las legislativas. El 20/11 el Nasdaq cayó 5,3% y el S&P 500, 3,7%.",
+ s:"Muchos apostaron a que la IA daría ganancias enormes. Con dudas sobre su costo y posibles reglas más duras, todos quisieron vender a la vez."},
+{t:"Aranceles y tensión global",big:"25/11",cap:"nuevo anuncio arancelario",
+ a:"Anuncio de aranceles de la Casa Blanca el 25/11 y tensión EE.UU.–Irán, con drones derribados sobre una base en Bahréin.",
+ s:"Nuevos impuestos a las importaciones y conflicto en Medio Oriente: ruido extra que pone más nerviosos a los inversores."}];
+
+function Catalysts(){
+  return <div className="h-full flex flex-col fade">
+    <div className="kick mb-3">Qué movió la aguja</div>
+    <h1 className="serif text-3xl xl:text-[44px] leading-[1.08] max-w-3xl"><T a="Cuatro catalizadores explican el movimiento." s="Cuatro noticias que sacudieron al mercado."/></h1>
+    <div className="grid md:grid-cols-2 gap-4 mt-8 flex-1 content-start">
+      {CATS.map((c,i)=><div key={i} className="sf p-5 grid grid-cols-[215px_1fr] gap-5 items-start">
+        <div><div className="serif text-3xl acc leading-none whitespace-nowrap">{c.big}</div><div className="mut text-[11px] mt-2">{c.cap}</div></div>
+        <div><div className="font-semibold text-[15px]">{c.t}</div><p className="mut text-sm mt-1 leading-relaxed"><T a={c.a} s={c.s}/></p></div>
+      </div>)}
+    </div>
+    <Src>Fuentes: AP (10/11), CME FedWatch vía Asianet, InvestmentNews (25/11), CNN y Al Jazeera (25/11), Barchart.</Src>
+  </div>;
+}
+
+const WL=[
+{w:1,t:"Consumo básico",big:"\u2248 +1%",cap:"el 20/11, con el S&P 500 en \u22123,7%",
+ a:"Sector defensivo: subió mientras el índice se hundía, por rotación hacia demanda estable.",
+ s:"Comida y productos de limpieza: se compran igual en las buenas y en las malas. Fue el paraguas cuando llovió."},
+{w:1,t:"Energía y materiales",big:"Al alza",cap:"el 25/11",
+ a:"El 25/11 el dinero salió de IA hacia bonos, materiales, inmobiliario y energía.",
+ s:"Cuando los inversores huyeron de la tecnología, buscaron refugio en petróleo y materias primas."},
+{w:0,t:"Nvidia",big:"\u22123,9%",cap:"el 25/11, tras \u221228% por la renuncia de Huang",
+ a:"Epicentro del escándalo y de la venta de IA: pese al +31,5% del 23/11, volvió a caer.",
+ s:"Es la jugadora estrella de la IA: cuando ella tropieza, el mercado entero se resiente."},
+{w:0,t:"Semiconductores",big:"\u22125,3%",cap:"índice SOX, el 16/11",
+ a:"El SOX se hundió 5,3% tras la renuncia de Huang, el golpe más fuerte al sector en el período.",
+ s:"Las fábricas de chips, el motor de la IA, fueron las más castigadas en un solo día."}];
+
+function Winners(){
+  return <div className="h-full flex flex-col fade">
+    <div className="kick mb-3">Ganadores y perdedores</div>
+    <h1 className="serif text-3xl xl:text-[44px] leading-[1.08] max-w-3xl"><T a="La IA perdió; lo defensivo resistió." s="Perdió lo que estaba de moda; ganó lo aburrido y seguro."/></h1>
+    <div className="grid grid-cols-1 md:grid-cols-2 auto-rows-fr gap-4 mt-8">
+      {[1,0].map(side=><div key={side} className="contents">
+        
+        {WL.filter(x=>x.w===side).map((c,i)=><div key={i} className="sf p-5 h-full grid grid-cols-[130px_1fr] gap-5 items-start" style={{order:i*2+(side?1:2),borderLeft:"2px solid "+(side?"var(--up)":"var(--dn)")}}>
+          <div><div className={"serif text-3xl leading-none "+(side?"up":"dn")}>{c.big}</div><div className="mut text-[11px] mt-2">{c.cap}</div></div>
+          <div><div className={"kick mb-1 "+(side?"up":"dn")}>{side?"Ganador":"Perdedor"}</div><div className="font-semibold text-[15px]">{c.t}</div><p className="mut text-sm mt-1 leading-relaxed"><T a={c.a} s={c.s}/></p></div>
+        </div>)}
+      </div>)}
+    </div>
+    <Src>Criterio relativo: no hay un ranking verificado de todo el período, se usan los movimientos puntuales reportados. Fuentes: CNN, Breitbart (20/11), Zacks (16/11).</Src>
+  </div>;
+}
+
+const IND=[
+{col:"var(--acc)",tag:"Volatilidad alta",n:"Termómetro del miedo (VIX)",v:"28,03",c:"llegó a 35 durante la rueda del 25/11",
+ a:"Volatilidad implícita elevada, tras tocar 35 intradía.",s:"Los inversores esperan sobresaltos: el termómetro del miedo está alto."},
+{col:"var(--dn)",tag:"Cerca de corrección",n:"Distancia al máximo",v:"\u22128,14%",c:"S&P 500 vs. récord del 6/10 (7.818,93)",
+ a:"Cierra 8,14% bajo el máximo, sin llegar al umbral de 10% de corrección.",s:"Está cerca de una caída oficial de 10%, pero al cierre del 25/11 todavía no la alcanzó."},
+{col:"var(--up)",tag:"Amplitud positiva",n:"Empresas que subieron",v:"370 / 128",c:"suben vs. bajan en el S&P 500 el 25/11",
+ a:"Amplitud positiva: la presión se concentra en IA y las small y mid caps rindieron mejor.",s:"La mayoría de las empresas subió. El golpe se concentró en el sector de la IA."}];
+
+function Conclusion(){
+  return <div className="h-full flex flex-col fade">
+    <div className="grid lg:grid-cols-[minmax(320px,2fr)_3fr] gap-x-14 gap-y-8 flex-1 min-h-0">
+      <div>
+        <div className="kick mb-3">Conclusión práctica</div>
+        <h1 className="serif text-4xl xl:text-[56px] leading-[1.04] acc">Cautela con volatilidad.</h1>
+        <p className="mt-4 text-[15px] max-w-md"><T a="Rotación defensiva fuera de IA, con una Fed más dura como principal riesgo." s="El mercado respira, pero con un ojo en la puerta: no hay pánico, tampoco tranquilidad."/></p>
+        <div className="sf p-5 mt-8 max-w-md"><div className="kick mb-4">Sentimiento actual</div>
+          <div className="relative h-3 rounded-full mt-8" style={{background:"linear-gradient(90deg,var(--up),var(--acc),var(--dn))",opacity:.9}}>
+            <div style={{position:"absolute",left:"62%",top:-22,transform:"translateX(-50%)",textAlign:"center",fontSize:11,fontWeight:600,lineHeight:1}}>Hoy<div style={{width:3,height:26,margin:"4px auto 0",background:"var(--tx)",borderRadius:2}}/></div>
+          </div>
+          <div className="flex justify-between mut text-[11px] mt-3"><span>Calma</span><span>Cautela</span><span>Pánico</span></div>
+        </div>
+        <div className="sf p-5 mt-4 max-w-md">
+          <div className="kick pb-2">A tener en la mira</div>
+          <div className="rule py-3 text-sm"><b>8–9 de diciembre.</b> <span className="mut"><T a="Reunión de la Fed, con suba de tasas descontada." s="El banco central decide si encarece el crédito."/></span></div>
+          <div className="rule py-3 text-sm"><b>Regulación de IA.</b> <span className="mut"><T a="Cualquier novedad legislativa sobre el sector." s="Nuevas reglas podrían volver a mover al mercado."/></span></div>
+        </div>
+      </div>
+      <div className="lg:pt-8">
+        {IND.map((x,i)=><div key={i} className="sf p-6 mb-4 grid grid-cols-[170px_1fr] gap-6 items-start" style={{borderLeft:"2px solid "+x.col}}>
+          <div><div className="serif text-4xl leading-none" style={{color:x.col}}>{i===2?<><span className="up">370</span> <span className="mut">/</span> <span className="dn">128</span></>:x.v}</div><div className="mut text-[11px] mt-2">{x.c}</div></div>
+          <div><div className="flex flex-wrap items-center gap-2"><span className="font-semibold text-[15px]">{x.n}</span><span className="text-[11px] px-2 py-0.5 rounded-full" style={{color:x.col,border:"1px solid "+x.col}}>{x.tag}</span></div><p className="mut text-sm mt-1"><T a={x.a} s={x.s}/></p></div>
+        </div>)}
+      </div>
+    </div>
+    <Src>Información, no asesoramiento financiero. Fuentes: AP, CNN, Barchart, JournalArta. Datos al cierre del 25/11/2026.</Src>
+  </div>;
+}
+
+const TABS=[["El Pulso (30 seg)",Pulse],["Qué movió la aguja",Catalysts],["Ganadores y Perdedores",Winners],["Conclusión práctica",Conclusion]];
+
+function App(){
+  const [tab,setTab]=useState(0);
+  const [simple,setSimple]=useState(false);
+  const Body=TABS[tab][1];
+  const mainRef=React.useRef(null);
+  React.useEffect(()=>{window.scrollTo(0,0);if(mainRef.current)mainRef.current.scrollTop=0;},[tab,simple]);
+  return <Mode.Provider value={simple}>
+    <div className="h-full flex flex-col max-w-[1400px] mx-auto px-6">
+      <header className="flex items-end justify-between gap-4 pt-3 flex-wrap">
+        <div><div className="serif text-xl">Wall Street en 15 días</div><div className="mut text-xs">10 al 25 de noviembre de 2026</div></div>
+        <div className="seg" role="group" aria-label="Modo de lectura">
+          <button className={!simple?"on":""} onClick={()=>setSimple(false)}>Modo Analista</button>
+          <button className={simple?"on":""} onClick={()=>setSimple(true)}>Modo Simple</button>
+        </div>
+      </header>
+      <nav className="flex overflow-x-auto mt-2 rule">
+        {TABS.map(([n],i)=><button key={n} className={"tab "+(tab===i?"on":"")} onClick={()=>setTab(i)}>{n}</button>)}
+      </nav>
+      <main key={tab} ref={mainRef} className="flex-1 min-h-0 overflow-auto pt-5 pb-3">
+        <Body/>
+      </main>
+    </div>
+  </Mode.Provider>;
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
